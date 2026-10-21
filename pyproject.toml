@@ -1,0 +1,21 @@
+[project]
+name = "memo-buddy"
+version = "0.1.0"
+description = "A desktop character that looks after a vault of markdown memory notes."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "Adem Ghorbel" }]
+
+[project.scripts]
+memo = "memo.__main__:main"
+
+[project.gui-scripts]
+memo-widget = "memo.widget:run"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["memo", "memo.widget"]
