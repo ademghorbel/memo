@@ -18,7 +18,9 @@ from pathlib import Path
 
 from ..checker import Config, Report, check
 from ..fixer import fix, undo
-from . import face
+from . import face, linko
+
+SKINS = {"memo": face, "linko": linko}
 from .text import details, summarize, tidied
 
 KEY = "#ff00fe"  # painted where the window should be see-through (Windows)
@@ -38,8 +40,12 @@ def _dpi_aware() -> None:
 
 
 class MemoApp:
-    def __init__(self, vault: Path, config: Config | None = None, every_min: float = 10):
+    def __init__(self, vault: Path, config: Config | None = None, every_min: float = 10, skin: str = "memo"):
         _dpi_aware()
+        if skin == "linko3d":  # needs Pillow + the local render, so only loaded on request
+            from . import linko3d
+            SKINS["linko3d"] = linko3d
+        self.face = SKINS.get(skin, face)
         self.vault, self.config, self.every_ms = Path(vault), config or Config(), int(every_min * 60_000)
         self.root = root = tk.Tk()
         root.title("Memo")
@@ -50,7 +56,7 @@ class MemoApp:
         except tk.TclError:  # not Windows: a plain square background
             pass
         self.k = max(1.0, root.winfo_fpixels("1i") / 96)
-        size = int(face.SIZE * self.k)
+        size = int(self.face.SIZE * self.k)
         self.canvas = tk.Canvas(root, width=size, height=size, bg=KEY, highlightthickness=0, cursor="hand2")
         self.canvas.pack()
         x = root.winfo_screenwidth() - size - int(30 * self.k)
@@ -145,7 +151,7 @@ class MemoApp:
             self.pending = None
         if self.state == "done" and now >= self.revert_at and self.report:
             self.state = self.report.mood
-        face.draw(self.canvas, self.state, now - self.t0, self.k)
+        self.face.draw(self.canvas, self.state, now - self.t0, self.k)
         self.root.after(FRAME_MS, self._tick)
 
     # --- mouse --------------------------------------------------------------
@@ -173,9 +179,9 @@ class MemoApp:
         b = self.bubble = tk.Toplevel(self.root)
         b.overrideredirect(True)
         b.attributes("-topmost", True)
-        frame = tk.Frame(b, bg=BUBBLE_BG, highlightbackground=face.INK, highlightthickness=max(1, int(2 * k)))
+        frame = tk.Frame(b, bg=BUBBLE_BG, highlightbackground=self.face.INK, highlightthickness=max(1, int(2 * k)))
         frame.pack()
-        label = tk.Label(frame, text=text, bg=BUBBLE_BG, fg=face.INK, justify="left",
+        label = tk.Label(frame, text=text, bg=BUBBLE_BG, fg=self.face.INK, justify="left",
                          font=("Segoe UI", 10), wraplength=int(260 * k), padx=int(10 * k), pady=int(8 * k))
         label.pack()
         for wdg in (b, frame, label):

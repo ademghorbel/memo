@@ -3,6 +3,8 @@
 - Oversize note: move its oldest `## History` lines into `<Subject> - Archive.md`.
 - Missing section: add the empty heading at the end of the note.
 - Stub note (almost empty): remove it. Empty folders: remove them.
+- Link to a note that was deleted: keep the words, drop the brackets
+  (a `- Older history: [[X - Archive]]` line whose archive is gone is removed).
 
 Everything else (merging notes, rewriting text) is reported, never touched.
 Before anything is written, the files about to change go into a backup zip in
@@ -19,7 +21,7 @@ import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .checker import ARCHIVE_SUFFIX, IGNORED_DIRS, Config, check
+from .checker import ARCHIVE_SUFFIX, CODE, IGNORED_DIRS, Config, check
 
 MEMO_DIR = ".memo"
 KEEP_BACKUPS = 20
@@ -107,6 +109,30 @@ def add_to_archive(existing: str | None, subject: str, moved: list[str]) -> str:
     return "\n".join(lines[:at] + moved + lines[at:]) + "\n"
 
 
+# --- dead links ----------------------------------------------------------------
+LINK = re.compile(r"\[\[([^\]|#]+)(#[^\]|]*)?(?:\|([^\]]*))?\]\]")
+
+
+def unlink(text: str, dead: set[str]) -> str:
+    """Turn [[Dead]] into Dead (or its alias), outside code. Pointer-only bullets to a
+    dead archive are dropped, since they would point at nothing."""
+    def outside_code(chunk: str) -> str:
+        return LINK.sub(lambda m: (m[3] or m[1]).strip() if m[1].strip() in dead else m[0], chunk)
+
+    kept = []
+    for line in text.splitlines(keepends=True):
+        m = LINK.search(line)
+        if (m and m[1].strip() in dead and m[1].strip().endswith(ARCHIVE_SUFFIX)
+                and BULLET.match(line) and POINTER.search(line) and len(line.split()) <= 4 + len(m[0].split())):
+            continue
+        kept.append(line)
+    text, out, i = "".join(kept), [], 0
+    for m in CODE.finditer(text):
+        out += [outside_code(text[i:m.start()]), m[0]]
+        i = m.end()
+    return "".join(out) + outside_code(text[i:])
+
+
 # --- planning and applying ---------------------------------------------------
 def plan(vault: Path, cfg: Config) -> tuple[dict[Path, str | None], list[Path], FixResult]:
     """Work out every change in memory. {path: new text, or None to remove}."""
@@ -141,6 +167,10 @@ def plan(vault: Path, cfg: Config) -> tuple[dict[Path, str | None], list[Path], 
             text = read(path).rstrip("\n")
             changes[path] = text + "".join(f"\n\n## {s}\n" for s in missing).rstrip("\n") + "\n"
             result.done.append(f"Added section{'s' * (len(missing) != 1)} {', '.join(missing)} to {f.path}.")
+        elif f.code == "broken-link":
+            dead = f.message.split("[[", 1)[1].split("]]", 1)[0]
+            changes[path] = unlink(read(path), {dead})
+            result.done.append(f"Unlinked [[{dead}]] in {f.path} (that note is gone).")
         elif f.code == "stub-file":
             changes[path] = None
             result.done.append(f"Removed {f.path} ({f.message.lower().rstrip('.')}).")

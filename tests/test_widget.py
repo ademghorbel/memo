@@ -2,7 +2,7 @@ import tkinter as tk
 import unittest
 
 from memo.checker import Finding, Report
-from memo.widget import face
+from memo.widget import face, linko
 from memo.widget.text import details, summarize
 
 
@@ -40,11 +40,12 @@ class FaceTests(unittest.TestCase):
         except tk.TclError:
             self.skipTest("no display")
         try:
-            c = tk.Canvas(root, width=face.SIZE, height=face.SIZE)
-            for state in face.STATES:
-                for t in (0.0, 0.07, 1.3, 2.9):
-                    face.draw(c, state, t, 1.5)
-                    self.assertTrue(c.find_all(), state)
+            for skin in (face, linko):
+                c = tk.Canvas(root, width=skin.SIZE, height=skin.SIZE)
+                for state in skin.STATES:
+                    for t in (0.0, 0.07, 1.3, 2.9):
+                        skin.draw(c, state, t, 1.5)
+                        self.assertTrue(c.find_all(), (skin.__name__, state))
         finally:
             root.destroy()
 

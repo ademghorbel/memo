@@ -32,6 +32,8 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("undo", parents=[common], help="restore the vault from the last fix's backup")
     p_widget = sub.add_parser("widget", parents=[common], help="show Memo on the desktop")
     p_widget.add_argument("--every", type=float, default=10, help="re-check every N minutes (0 = only on click)")
+    p_widget.add_argument("--skin", choices=["memo", "linko", "linko3d"], default=os.environ.get("MEMO_SKIN", "memo"),
+                          help="which face to show (default: $MEMO_SKIN or memo)")
     args = parser.parse_args(argv)
     config = Config(max_words=args.max_words, max_notes_per_subject=args.max_notes)
 
@@ -54,7 +56,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "widget":
         from .widget import run
-        run(args.vault or default_vault(), config, args.every)
+        run(args.vault or default_vault(), config, args.every, args.skin)
         return 0
 
     report = check(args.vault or default_vault(), config)

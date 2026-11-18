@@ -91,6 +91,20 @@ class FixerTest(unittest.TestCase):
         self.assertEqual(self.read("2026-01-05 notes"), before)
         self.assertTrue(any("Per-session" in l for l in result.left))
 
+    def test_links_to_deleted_notes_are_unlinked(self):
+        self.write("Gone", subject("Gone", ["- 2026-01-01: x"]))
+        self.write("Kept", subject("Kept", ["- 2026-01-02: see [[Gone]]", "- Older history: [[Kept - Archive]]"],
+                                   extra="Related: [[Gone|the old one]], [[Last Session]], `[[Gone]]`."))
+        (self.vault / "Gone.md").unlink()
+        result = fix(self.vault, self.cfg)
+        kept = self.read("Kept")
+        self.assertIn("see Gone", kept)
+        self.assertIn("Related: the old one, [[Last Session]], `[[Gone]]`.", kept)
+        self.assertNotIn("Older history", kept)
+        self.assertEqual(check(self.vault, self.cfg).mood, "tidy")
+        undo(self.vault)
+        self.assertIn("[[Gone|the old one]]", self.read("Kept"))
+
 
 if __name__ == "__main__":
     unittest.main()
