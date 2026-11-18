@@ -50,6 +50,10 @@ Memo only makes changes that need no judgment:
   bottom. The newest line always stays put.
 * **Missing headings get added**, so every subject note has the same shape.
 * **Almost empty notes and empty folders are removed.**
+* **Links to deleted notes are cleaned up.** Delete an old note and every
+  `[[link]]` to it turns back into plain text, so the words stay and nothing
+  points at a missing note. An "Older history" line whose archive you deleted is
+  removed.
 
 Anything that needs real rewriting (merging two notes, condensing a long
 summary) is listed in the bubble and never touched.
@@ -59,7 +63,8 @@ summary) is listed in the bubble and never touched.
 
 ## Quick start
 
-You need Python 3.11 or newer. That is all: Memo uses only the standard library.
+You need Python 3.11 or newer. That is all: Memo uses only the standard library
+(only the optional `linko3d` skin needs Pillow).
 
 ```bash
 git clone https://github.com/ademghorbel/memo.git
@@ -81,6 +86,21 @@ looks at `$MEMO_VAULT`, then `~/ClaudeVault`.
 
 Memo checks again on its own every 10 minutes. Change that with `--every 30`,
 or `--every 0` to check only when you click.
+
+### Skins
+
+| Skin | Look | Needs |
+|---|---|---|
+| `memo` (default) | the emo face, drawn with canvas shapes | nothing |
+| `linko` | CS Linko, the IEEE Computer Society mascot, drawn as a cloud of cubes with round glasses | nothing |
+| `linko3d` | a 3D render of Linko's head, animated per mood (bounce, shake, orbiting cubes, sparkles, grey on error) | [Pillow](https://pypi.org/project/pillow/) and the render PNG, path in `$MEMO_LINKO_IMAGE` |
+
+```bash
+pythonw -m memo widget --skin linko
+```
+
+Set `$MEMO_SKIN` to pick a skin without the flag. The Linko render is not
+shipped in this repo.
 
 ## Command line
 
@@ -147,6 +167,8 @@ memo/
   fixer.py       the safe fixes, backups and undo
   widget/
     face.py      draws the face with canvas shapes, no image files
+    linko.py     the Linko skin, same drawing contract
+    linko3d.py   the Linko 3D skin (optional, Pillow)
     app.py       the window: click, drag, menu, bubble
     text.py      turns a Report into the bubble's sentences
   __main__.py    the command line
@@ -154,7 +176,8 @@ memo/
 
 The checker is the single source of truth: the terminal, the buddy and any
 future front end all read the same Report, so the face can never disagree with
-the facts. A new skin is just another `face.py` with the same `draw` function.
+the facts. A new skin is just another module with the same `draw(canvas, state,
+t, k)` function plus `SIZE`, `STATES` and `INK`.
 
 ## Tests
 
