@@ -102,6 +102,19 @@ pythonw -m memo widget --skin linko
 Set `$MEMO_SKIN` to pick a skin without the flag. The Linko render is not
 shipped in this repo.
 
+### Desktop shortcut (Windows)
+
+To start Linko from a desktop icon, turn the render into an `.ico` with Pillow:
+
+```bash
+python -c "from PIL import Image; Image.open('Linko.png').save('linko3d.ico', sizes=[(256,256),(64,64),(48,48),(32,32),(16,16)])"
+```
+
+Then make a shortcut with target `pythonw.exe -m memo widget --skin linko3d`,
+"Start in" set to the repo folder, and *Change Icon* pointing at `linko3d.ico`.
+Windows caches icons by path, so if you replace the icon, give the new file a
+new name.
+
 ## Command line
 
 Everything the buddy does also works in a terminal:
