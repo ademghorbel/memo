@@ -1,6 +1,6 @@
 """CS Linko skin: a cloud of light-blue cubes wearing round glasses.
 
-Same contract as face.py: `draw(canvas, state, t, k)`, plus SIZE, STATES and INK.
+Skin contract: `draw(canvas, state, t, k)`, plus SIZE, STATES and INK.
 Cubes are drawn as simple 3D boxes (front, top and right faces) back to front.
 """
 

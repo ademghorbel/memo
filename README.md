@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/memo.gif" width="200" alt="Memo, a small emo face, sweating, munching through the notes, then smiling">
+  <img src="docs/memo.gif" width="200" alt="Linko, a cloud of blue cubes with round glasses, sweating, munching through the notes, then smiling">
 </p>
 
 <h1 align="center">Memo</h1>
@@ -23,8 +23,9 @@ pile up, one subject gets split across three notes, history sections grow
 forever, links break. Nobody cleans them until the assistant starts loading a
 wall of stale text.
 
-Memo sits in the corner of your screen and shows the state of that folder on
-its face. When it starts sweating, click it.
+Memo puts Linko, the IEEE Computer Society mascot drawn as a cloud of blue
+cubes with round glasses, in the corner of your screen. Linko shows the state of
+that folder on its face. When it starts sweating, click it.
 
 ## Meet the moods
 
@@ -34,12 +35,12 @@ its face. When it starts sweating, click it.
 
 | Mood | What it means |
 |---|---|
-| **tidy** | Nothing to fix. Memo breathes slowly and blinks now and then. |
+| **tidy** | Nothing to fix. Linko floats gently and blinks now and then. |
 | **worried** | Warnings: a note over the word limit, a broken link. A sweat drop slides down. |
-| **bloated** | Real problems: leftover session files, almost empty notes, a subject split over too many notes. |
-| **working** | Munching through your notes after a click. |
+| **bloated** | Real problems: leftover session files, almost empty notes, a subject split over too many notes. The cubes puff out and the eyelids get heavy. |
+| **working** | Munching through your notes after a click while the small cubes orbit. |
 | **done** | Finished. A bubble tells you what changed. |
-| **error** | Something failed. The bubble says what. |
+| **error** | Something failed. Linko turns grey and the bubble says what. |
 
 ## What a click does
 
@@ -63,8 +64,7 @@ summary) is listed in the bubble and never touched.
 
 ## Quick start
 
-You need Python 3.11 or newer. That is all: Memo uses only the standard library
-(only the optional `linko3d` skin needs Pillow).
+You need Python 3.11 or newer. That is all: Memo uses only the standard library.
 
 ```bash
 git clone https://github.com/ademghorbel/memo.git
@@ -80,40 +80,36 @@ looks at `$MEMO_VAULT`, then `~/ClaudeVault`.
 | Action | Result |
 |---|---|
 | Click | Tidy up, check again, show what happened |
-| Drag | Move Memo anywhere on the screen |
+| Drag | Move Linko anywhere on the screen |
 | Right click | *Tidy up*, *Check only*, *What's wrong?*, *Undo last tidy*, *Open vault folder*, *Quit* |
 | Esc | Quit |
 
 Memo checks again on its own every 10 minutes. Change that with `--every 30`,
 or `--every 0` to check only when you click.
 
-### Skins
+### Your own skin
 
-| Skin | Look | Needs |
-|---|---|---|
-| `memo` (default) | the emo face, drawn with canvas shapes | nothing |
-| `linko` | CS Linko, the IEEE Computer Society mascot, drawn as a cloud of cubes with round glasses | nothing |
-| `linko3d` | a 3D render of Linko's head, animated per mood (bounce, shake, orbiting cubes, sparkles, grey on error) | [Pillow](https://pypi.org/project/pillow/) and the render PNG, path in `$MEMO_LINKO_IMAGE` |
+Linko is drawn with plain canvas shapes, no image files. To give Memo another
+look, write a Python file with a `draw(canvas, state, t, k)` function plus
+`SIZE`, `STATES` and `INK` (see `memo/widget/linko.py`), then point Memo at it:
 
 ```bash
-pythonw -m memo widget --skin linko
+pythonw -m memo widget --skin path/to/my_skin.py
 ```
 
-Set `$MEMO_SKIN` to pick a skin without the flag. The Linko render is not
-shipped in this repo.
+Set `$MEMO_SKIN` to the same path to use it without the flag.
 
 ### Desktop shortcut (Windows)
 
-To start Linko from a desktop icon, turn the render into an `.ico` with Pillow:
+Make a shortcut with target `pythonw.exe -m memo widget` and "Start in" set to
+the repo folder. For an icon, save any picture as an `.ico` with Pillow:
 
 ```bash
-python -c "from PIL import Image; Image.open('Linko.png').save('linko3d.ico', sizes=[(256,256),(64,64),(48,48),(32,32),(16,16)])"
+python -c "from PIL import Image; Image.open('linko.png').save('linko.ico', sizes=[(256,256),(64,64),(48,48),(32,32),(16,16)])"
 ```
 
-Then make a shortcut with target `pythonw.exe -m memo widget --skin linko3d`,
-"Start in" set to the repo folder, and *Change Icon* pointing at `linko3d.ico`.
-Windows caches icons by path, so if you replace the icon, give the new file a
-new name.
+and pick it with *Change Icon*. Windows caches icons by path, so if you replace
+the icon, give the new file a new name.
 
 ## Command line
 
@@ -179,18 +175,15 @@ memo/
   checker.py     reads the notes, returns a Report (findings, stats, mood)
   fixer.py       the safe fixes, backups and undo
   widget/
-    face.py      draws the face with canvas shapes, no image files
-    linko.py     the Linko skin, same drawing contract
-    linko3d.py   the Linko 3D skin (optional, Pillow)
+    linko.py     draws Linko with canvas shapes, no image files
     app.py       the window: click, drag, menu, bubble
     text.py      turns a Report into the bubble's sentences
   __main__.py    the command line
 ```
 
 The checker is the single source of truth: the terminal, the buddy and any
-future front end all read the same Report, so the face can never disagree with
-the facts. A new skin is just another module with the same `draw(canvas, state,
-t, k)` function plus `SIZE`, `STATES` and `INK`.
+future front end all read the same Report, so Linko's face can never disagree
+with the facts.
 
 ## Tests
 
@@ -205,7 +198,6 @@ The tests build their own throwaway vault, so they never touch your notes.
 * **Compact with AI (optional):** let Claude condense long summaries and merge
   split notes, always showing the change and asking first.
 * Start with the computer, remember the position, a config file.
-* More skins.
 
 Ideas and pull requests are welcome.
 

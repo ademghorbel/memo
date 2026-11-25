@@ -1,4 +1,4 @@
-"""Memo's desktop window: a frameless, always-on-top face.
+"""Memo's desktop window: a frameless, always-on-top Linko.
 
 Left-click: tidy the vault (safe fixes, backup first).  Drag: move.  Right-click: menu.
 The checker runs on a worker thread; results come back through a queue so only
@@ -18,9 +18,9 @@ from pathlib import Path
 
 from ..checker import Config, Report, check
 from ..fixer import fix, undo
-from . import face, linko
+from . import linko
 
-SKINS = {"memo": face, "linko": linko}
+SKINS = {"linko": linko}
 from .text import details, summarize, tidied
 
 KEY = "#ff00fe"  # painted where the window should be see-through (Windows)
@@ -39,13 +39,21 @@ def _dpi_aware() -> None:
             pass
 
 
+def load_skin(skin: str):
+    """A built-in skin by name, or your own skin module given as a path to a .py file."""
+    if skin.endswith(".py"):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("memo_custom_skin", skin)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+    return SKINS.get(skin, linko)
+
+
 class MemoApp:
-    def __init__(self, vault: Path, config: Config | None = None, every_min: float = 10, skin: str = "memo"):
+    def __init__(self, vault: Path, config: Config | None = None, every_min: float = 10, skin: str = "linko"):
         _dpi_aware()
-        if skin == "linko3d":  # needs Pillow + the local render, so only loaded on request
-            from . import linko3d
-            SKINS["linko3d"] = linko3d
-        self.face = SKINS.get(skin, face)
+        self.face = load_skin(skin)
         self.vault, self.config, self.every_ms = Path(vault), config or Config(), int(every_min * 60_000)
         self.root = root = tk.Tk()
         root.title("Memo")

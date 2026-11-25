@@ -2,7 +2,7 @@ import tkinter as tk
 import unittest
 
 from memo.checker import Finding, Report
-from memo.widget import face, linko
+from memo.widget import linko
 from memo.widget.text import details, summarize
 
 
@@ -40,7 +40,7 @@ class FaceTests(unittest.TestCase):
         except tk.TclError:
             self.skipTest("no display")
         try:
-            for skin in (face, linko):
+            for skin in (linko,):
                 c = tk.Canvas(root, width=skin.SIZE, height=skin.SIZE)
                 for state in skin.STATES:
                     for t in (0.0, 0.07, 1.3, 2.9):
@@ -48,6 +48,20 @@ class FaceTests(unittest.TestCase):
                         self.assertTrue(c.find_all(), (skin.__name__, state))
         finally:
             root.destroy()
+
+
+class SkinLoadTests(unittest.TestCase):
+    def test_builtin_and_file(self):
+        import tempfile
+        from pathlib import Path
+        from memo.widget.app import load_skin
+        self.assertIs(load_skin("linko"), linko)
+        self.assertIs(load_skin("unknown"), linko)
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / "my_skin.py"
+            f.write_text("SIZE = 100\nSTATES = ('tidy',)\nINK = '#000'\ndef draw(c, state, t, k=1.0):\n    pass\n")
+            skin = load_skin(str(f))
+            self.assertEqual(skin.SIZE, 100)
 
 
 if __name__ == "__main__":
