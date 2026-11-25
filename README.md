@@ -97,7 +97,8 @@ look, write a Python file with a `draw(canvas, state, t, k)` function plus
 pythonw -m memo widget --skin path/to/my_skin.py
 ```
 
-Set `$MEMO_SKIN` to the same path to use it without the flag.
+You can also drop the file next to `linko.py` and pass just its name
+(`--skin my_skin`). Set `$MEMO_SKIN` to use it without the flag.
 
 ### Desktop shortcut (Windows)
 

@@ -47,7 +47,13 @@ def load_skin(skin: str):
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         return module
-    return SKINS.get(skin, linko)
+    if skin in SKINS:
+        return SKINS[skin]
+    try:  # a skin module you keep next to linko.py, by name
+        import importlib
+        return importlib.import_module(f"{__package__}.{skin}")
+    except ImportError:
+        return linko
 
 
 class MemoApp:
